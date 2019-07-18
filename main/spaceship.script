@@ -1,0 +1,78 @@
+function init(self)
+	msg.post(".", "acquire_input_focus")
+	self.velocity = vmath.vector3()
+	self.input = vmath.vector3()
+	self.target = vmath.vector3()
+end
+
+function update(self, dt)
+	if vmath.length_sqr(self.input) > 1 then
+		self.input = vmath.normalize(self.input)
+	end	
+	local acceleration = self.input --* 200
+	if vmath.length(self.target) > 1 then
+		acceleration = 20 * (acceleration - vmath.normalize(go.get_position() - self.target))
+		self.target = vmath.vector3()	
+	end	
+	acceleration = acceleration * 200
+	local dv = acceleration * dt
+	local v0 = self.velocity
+	local v1 = self.velocity + dv
+	local maxVelocity = 400
+	if v1.x > maxVelocity then
+		v1.x = maxVelocity
+	elseif v1.x < -maxVelocity then
+		v1.x = -maxVelocity
+	elseif v1.y > maxVelocity then
+		v1.y = maxVelocity
+	elseif v1.y < -maxVelocity then
+		v1.y = -maxVelocity
+	end
+	local movement = (v0 + v1) * dt * 0.5
+	local p = go.get_position()	
+	p = p + movement
+	if p.x > 1220 then
+		p.x = 1220
+		local n = vmath.vector3(1, 0, 0)
+		v1 = v1 - 2 * (vmath.dot(v1, n)) * n --vmath.vector3()
+	elseif p.x < 60 then
+		p.x = 60
+		local n = vmath.vector3(1, 0, 0)
+		v1 = v1 - 2 * (vmath.dot(v1, n)) * n --vmath.vector3()
+	elseif p.y < 40 then
+		p.y = 40
+		local n = vmath.vector3(0, 1, 0)
+		v1 = v1 - 2 * (vmath.dot(v1, n)) * n --vmath.vector3()
+	elseif p.y > 670 then
+		p.y = 670
+		local n = vmath.vector3(0, 1, 0)
+		v1 = v1 - 2 * (vmath.dot(v1, n)) * n --vmath.vector3()
+	end	
+	go.set_position(p)
+	self.velocity = v1
+	self.input = vmath.vector3()
+end
+
+function on_input(self, action_id, action)
+	if action_id == hash("up") then
+		print("UP!")
+		sound.play("#engine", {delay = 0, gain = 0.1})
+		self.input.y = 1
+	elseif action_id == hash("down") then
+		print("DOWN!")
+		sound.play("#engine", {delay = 0, gain = 0.1})
+		self.input.y = -1
+	elseif action_id == hash("left") then
+		print("LEFT!")
+		sound.play("#engine", {delay = 0, gain = 0.1})
+		self.input.x = -1
+	elseif action_id == hash("right") then
+		print("RIGHT!")
+		sound.play("#engine", {delay = 0, gain = 0.1})
+		self.input.x = 1
+	elseif action_id == hash("click") and action.pressed then		
+		print("CLICK!")
+		self.target = vmath.vector3(action.x, action.y, 0)
+		sound.play("#engine", {delay = 0, gain = 0.1})
+	end
+end
